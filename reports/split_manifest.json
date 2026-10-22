@@ -1,0 +1,31 @@
+{
+  "strategy": "SUBJECT_AND_SESSION_BASED",
+  "train": {
+    "subjects": [
+      "S01",
+      "S02",
+      "S03",
+      "S04",
+      "S05",
+      "S06"
+    ],
+    "count": 0,
+    "files": []
+  },
+  "val": {
+    "subjects": [
+      "S07"
+    ],
+    "count": 0,
+    "files": []
+  },
+  "test": {
+    "subjects": [
+      "S08",
+      "S09",
+      "S10"
+    ],
+    "count": 0,
+    "files": []
+  }
+}

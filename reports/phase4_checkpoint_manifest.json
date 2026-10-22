@@ -1,0 +1,16 @@
+{
+    "checkpoint_path": "yolo26n-pose.pt",
+    "exists": false,
+    "file_size_bytes": 0,
+    "loadable": false,
+    "task": null,
+    "nc": null,
+    "kpt_shape": null,
+    "provenance_verified": false,
+    "source": null,
+    "pretrained": false,
+    "status": "FAIL",
+    "notes": [
+        "Checkpoint file not found: yolo26n-pose.pt"
+    ]
+}

@@ -1,0 +1,19 @@
+{
+    "python_version": "3.14.3 (tags/v3.14.3:323c59a, Feb  3 2026, 16:04:56) [MSC v.1944 64 bit (AMD64)]",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "torch_version": null,
+    "torchvision_version": null,
+    "ultralytics_version": null,
+    "cuda_available": false,
+    "gpu_name": null,
+    "gpu_memory_gb": null,
+    "device": "CPU",
+    "status": "INSPECTED",
+    "notes": [
+        "PyTorch is not installed in the current Python environment.",
+        "TorchVision is not installed in the current Python environment.",
+        "Ultralytics is not installed in the current Python environment.",
+        "Physical hardware GPU detected: NVIDIA GeForce RTX 3050 6GB Laptop GPU, but torch.cuda is currently not linked/active."
+    ],
+    "hardware_gpu_detected": "NVIDIA GeForce RTX 3050 6GB Laptop GPU"
+}

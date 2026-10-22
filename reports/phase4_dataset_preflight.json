@@ -1,0 +1,69 @@
+{
+    "dataset_path": "datasets\\hand_pose",
+    "splits": {
+        "train": {
+            "images": 0,
+            "labels": 0,
+            "instances": 0,
+            "subjects": [],
+            "sessions": []
+        },
+        "val": {
+            "images": 0,
+            "labels": 0,
+            "instances": 0,
+            "subjects": [],
+            "sessions": []
+        },
+        "test": {
+            "images": 0,
+            "labels": 0,
+            "instances": 0,
+            "subjects": [],
+            "sessions": []
+        }
+    },
+    "total_images": 0,
+    "total_labels": 0,
+    "total_instances": 0,
+    "gesture_distribution": {
+        "HEARING": 0,
+        "THANK_YOU": 0,
+        "MORNING": 0,
+        "I": 0,
+        "BYE": 0,
+        "NAME": 0,
+        "INDIAN": 0
+    },
+    "gesture_distribution_by_split": {
+        "train": {
+            "HEARING": 0,
+            "THANK_YOU": 0,
+            "MORNING": 0,
+            "I": 0,
+            "BYE": 0,
+            "NAME": 0,
+            "INDIAN": 0
+        },
+        "val": {
+            "HEARING": 0,
+            "THANK_YOU": 0,
+            "MORNING": 0,
+            "I": 0,
+            "BYE": 0,
+            "NAME": 0,
+            "INDIAN": 0
+        },
+        "test": {
+            "HEARING": 0,
+            "THANK_YOU": 0,
+            "MORNING": 0,
+            "I": 0,
+            "BYE": 0,
+            "NAME": 0,
+            "INDIAN": 0
+        }
+    },
+    "gate_status": "BLOCKED",
+    "gate_reason": "DATASET NOT READY FOR TRAINING: train=0, val=0, test=0. Real production images are 0 across splits."
+}

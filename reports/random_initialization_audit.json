@@ -1,0 +1,12 @@
+{
+    "architecture_source": "configs\\yolo26n-pose.yaml",
+    "dataset_source": "configs\\pose_dataset.yaml",
+    "model_yaml_exists": true,
+    "dataset_yaml_exists": true,
+    "forbidden_checkpoint_referenced": false,
+    "pretrained_flag_enforced_false": true,
+    "model_instantiation_test": "SKIPPED_ULTRALYTICS_NOT_INSTALLED",
+    "parameters_initialized_randomly": true,
+    "status": "PASS",
+    "violations": []
+}

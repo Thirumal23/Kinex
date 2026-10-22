@@ -1,0 +1,1758 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>KINEX — Continuous ISL Sentence Recognition, Action Tracking & Telemetry</title>
+  <meta name="description" content="KINEX Indian Sign Language continuous sentence recognition system with Dual-Hand tracking, Sentence Action History Store, Grammar Synthesis, and Multimodal Glove Fusion.">
+  
+  <!-- Google Modern Fonts for Bento Grid -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  
+  <link rel="stylesheet" href="css/style.css?v=bento_v4">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🍱</text></svg>">
+
+  <!-- Official MediaPipe Hands for Dual-Hand Tracking (Native camera pipeline without uncatchable modal alerts) -->
+  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js" crossorigin="anonymous"></script>
+</head>
+<body>
+  <div class="kinex-app-wrapper">
+    
+    <!-- Top Navigation Header -->
+    <header class="kinex-header" id="kinexHeader">
+      <div class="header-branding">
+        <div class="brand-logo-glow">
+          <div class="logo-icon">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M18 11V6a2 2 0 0 0-2-2v0a2 2 0 0 0-2 2v0"></path>
+              <path d="M14 10V4a2 2 0 0 0-2-2v0a2 2 0 0 0-2 2v2"></path>
+              <path d="M10 10.5V6a2 2 0 0 0-2-2v0a2 2 0 0 0-2 2v8"></path>
+              <path d="M18 8a2 2 0 1 1 4 0v6a8 8 0 0 1-8 8h-2c-2.8 0-4.5-.86-5.99-2.34l-3.6-3.6a2 2 0 0 1 2.83-2.82L7 15"></path>
+            </svg>
+          </div>
+          <div class="logo-text">
+            <h1 class="project-title">KINEX <span class="badge-v2">SENTENCE AI 2.0</span></h1>
+            <p class="project-subtitle">Continuous ISL Sentence Recognition, Action History & Multimodal Fusion</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Navigation Tabs: Dedicated Menus for All Core Capabilities -->
+      <nav class="header-main-tabs" id="mainTabNav" aria-label="Main Navigation">
+        <button class="nav-tab-btn active" id="tabBtnDashboard" data-tab="dashboardTab" title="System Dashboard & Overview">
+          <span class="tab-icon">📊</span> Dashboard
+        </button>
+        <button class="nav-tab-btn" id="tabBtnLibrary" data-tab="libraryTab" title="View & Manage Sign Language Library">
+          <span class="tab-icon">📚</span> Sign Library
+          <span class="tab-badge-pill" id="badgeLibraryCount">0</span>
+        </button>
+        <button class="nav-tab-btn" id="tabBtnAddSign" data-tab="addSignTab" title="Add New Sign to Library">
+          <span class="tab-icon">➕</span> Add New Sign
+        </button>
+        <button class="nav-tab-btn" id="tabBtnRecognition" data-tab="recognitionTab" title="Continuous Real-Time Sentence Recognition">
+          <span class="tab-icon">🔮</span> Live Recognition
+        </button>
+        <button class="nav-tab-btn" id="tabBtnVideoSentence" data-tab="videoSentenceTab" title="Live Sign Language to Sentence Video Capture">
+          <span class="tab-icon">🎬</span> Video-to-Sentence
+        </button>
+        <button class="nav-tab-btn" id="tabBtnSentenceStudio" data-tab="sentenceStudioTab" title="Stored Translation History & Synthesis Workbench">
+          <span class="tab-icon">📜</span> Translation History
+          <span class="tab-badge-pill" id="badgeHistoryCount">0</span>
+        </button>
+        <button class="nav-tab-btn" id="tabBtnTrainer" data-tab="trainerTab" title="Record New Sign Language Samples & Train Model">
+          <span class="tab-icon">🎓</span> Model Trainer
+        </button>
+        <button class="nav-tab-btn" id="tabBtnSampleManager" data-tab="sampleManagerTab" title="Manage Stored Sign Language Samples">
+          <span class="tab-icon">🗂️</span> Manage Samples
+          <span class="tab-badge-pill" id="badgeTotalSamplesNav">0</span>
+        </button>
+      </nav>
+
+      <!-- 3 Operating Modes: Vision Only / Glove Only / Fusion -->
+      <div class="header-mode-controls">
+        <div class="mode-selector-pill" id="modeSelector">
+          <button class="mode-btn active" id="btnModeVision" data-mode="vision" title="Mode 1: Vision Only (Camera Keypoints)">
+            <span class="mode-dot"></span> Mode 1: Vision Only
+          </button>
+          <button class="mode-btn" id="btnModeGlove" data-mode="glove" title="Mode 2: Smart Glove Only (ESP32 Flex + IMU)">
+            <span class="mode-dot"></span> Mode 2: Glove Only
+          </button>
+          <button class="mode-btn" id="btnModeFusion" data-mode="fusion" title="Mode 3: Multimodal Fusion (Both Vision & Glove)">
+            <span class="mode-dot"></span> Mode 3: Vision + Glove
+          </button>
+        </div>
+      </div>
+
+      <div class="header-system-status">
+        <button class="theme-toggle-btn" id="btnToggleTheme" title="Toggle Bento Light / Bento Dark Mode">
+          <span class="theme-icon" id="themeIcon">☀️</span>
+          <span class="theme-label" id="themeLabel">Light</span>
+        </button>
+
+        <button class="tts-toggle-btn" id="btnToggleTTS" title="Toggle Text-to-Speech Sentence Announcer">
+          <span class="tts-icon" id="ttsIcon">🔊</span>
+          <span class="tts-label" id="ttsLabel">TTS: ON</span>
+        </button>
+
+        <div class="system-status-indicator" id="sysStatusBadge">
+          <span class="pulsing-ping"></span>
+          <span class="status-text" id="sysStatusText">API: Online</span>
+        </div>
+      </div>
+    </header>
+
+    <!-- Active Mode Notification Banner -->
+    <div class="mode-banner" id="modeBanner">
+      <span class="mode-banner-badge" id="modeBannerBadge">MODE 1: VISION ONLY</span>
+      <span class="mode-banner-desc" id="modeBannerDesc">Capturing continuous Indian Sign Language sentences from dual-hand landmark actions.</span>
+    </div>
+
+    <!-- In-viewport active webcam video element ensuring active GPU decoding without throttling -->
+    <video id="webcamVideo" autoplay playsinline muted style="position:fixed; top:0; left:0; width:1px; height:1px; opacity:0.01; pointer-events:none; z-index:-100;"></video>
+
+    <!-- ====================================================================
+         VIEW 1: DASHBOARD OVERVIEW
+         ==================================================================== -->
+    <div class="tab-content-view active" id="dashboardTab">
+      <main class="dashboard-view">
+        
+        <!-- Hero Banner with System Diagnostics -->
+        <section class="dashboard-hero-banner bento-tile">
+          <div class="hero-left">
+            <h2><span class="card-icon cyan-glow">👋</span> Welcome to KINEX Sign Language Intelligence</h2>
+            <p>End-to-end Indian Sign Language (ISL) recognition system. Store signs permanently, record video sentences, and translate gestures into natural language.</p>
+            <div class="hero-badges-row" style="margin-top: 1rem;">
+              <div class="hero-status-pill">
+                <span class="pill-dot"></span> SQLite Storage: <strong id="dashDbStatus">Persistent</strong>
+              </div>
+              <div class="hero-status-pill">
+                <span class="pill-dot"></span> Model: <strong id="dashModelStatus">Active (7 ISL Signs)</strong>
+              </div>
+              <div class="hero-status-pill">
+                <span class="pill-dot"></span> Camera: <strong id="dashCameraStatus">Ready</strong>
+              </div>
+            </div>
+          </div>
+          <!-- Decorative Japanese Bento Compartments SVG -->
+          <svg width="100%" height="70" viewBox="0 0 460 70" fill="none" style="max-width:380px; align-self:center;" class="bento-hero-svg">
+            <rect x="0" y="0" width="100" height="70" rx="14" fill="var(--bento-tile-secondary)"/>
+            <rect x="110" y="0" width="70" height="70" rx="14" fill="var(--bento-accent-yellow)" opacity="0.35"/>
+            <rect x="190" y="0" width="150" height="32" rx="10" fill="var(--bento-tile-secondary)"/>
+            <rect x="190" y="38" width="70" height="32" rx="10" fill="var(--bento-accent-green)" opacity="0.3"/>
+            <rect x="270" y="38" width="70" height="32" rx="10" fill="var(--bento-tile-secondary)"/>
+            <rect x="350" y="0" width="80" height="70" rx="14" fill="var(--bento-accent-purple)" opacity="0.3"/>
+          </svg>
+        </section>
+
+        <!-- 4 Core Metrics Cards -->
+        <section class="dashboard-stats-grid bento-grid">
+          <div class="dash-stat-card bento-tile" id="cardStatTotalSigns">
+            <div class="dash-stat-icon-wrap cyan">📚</div>
+            <div>
+              <span class="dash-stat-num mono-val metric" id="dashTotalSigns">15</span>
+              <span class="dash-stat-label metric-label">Saved Sign Vocabulary</span>
+              <span class="metric-trend">Persistent Database</span>
+            </div>
+          </div>
+
+          <div class="dash-stat-card bento-tile" id="cardStatTrainedSigns">
+            <div class="dash-stat-icon-wrap emerald">⚡</div>
+            <div>
+              <span class="dash-stat-num mono-val metric" id="dashTrainedSigns">15</span>
+              <span class="dash-stat-label metric-label">AI Recognized Signs</span>
+              <span class="metric-trend">+Dual-Hand Ready</span>
+            </div>
+          </div>
+
+          <div class="dash-stat-card bento-tile" id="cardStatTotalTranslations">
+            <div class="dash-stat-icon-wrap violet">📜</div>
+            <div>
+              <span class="dash-stat-num mono-val metric" id="dashTotalTranslations">4</span>
+              <span class="dash-stat-label metric-label">Translated Sentences</span>
+              <span class="metric-trend">Natural ISL Grammar</span>
+            </div>
+          </div>
+
+          <div class="dash-stat-card bento-tile" id="cardStatTotalRecordings">
+            <div class="dash-stat-icon-wrap amber">🎬</div>
+            <div>
+              <span class="dash-stat-num mono-val metric" id="dashTotalRecordings">0</span>
+              <span class="dash-stat-label metric-label">Processed Video Clips</span>
+              <span class="metric-trend">YOLO26 Kinematics</span>
+            </div>
+          </div>
+        </section>
+
+        <!-- Quick Launch Shortcuts -->
+        <section class="glass-card dashboard-quick-actions-card">
+          <h3 class="card-title" style="font-size:1.1rem; display:flex; align-items:center; gap:0.5rem;">
+            <span>⚡</span> Quick Navigation & Feature Launch
+          </h3>
+          <div class="dash-actions-grid">
+            <button class="dash-action-btn" id="btnDashLaunchVideo">
+              <span class="dash-action-icon">🎬</span>
+              <div>
+                <span class="dash-action-title">Record Video-to-Sentence</span>
+                <span class="dash-action-desc">Record camera clip and convert signs into sentences</span>
+              </div>
+            </button>
+            <button class="dash-action-btn" id="btnDashLaunchAddSign">
+              <span class="dash-action-icon">➕</span>
+              <div>
+                <span class="dash-action-title">Add New Sign</span>
+                <span class="dash-action-desc">Define sign meaning, description, and save media</span>
+              </div>
+            </button>
+            <button class="dash-action-btn" id="btnDashLaunchLibrary">
+              <span class="dash-action-icon">📚</span>
+              <div>
+                <span class="dash-action-title">Sign Language Library</span>
+                <span class="dash-action-desc">Browse, search, edit, and organize saved signs</span>
+              </div>
+            </button>
+            <button class="dash-action-btn" id="btnDashLaunchRecognition">
+              <span class="dash-action-icon">🔮</span>
+              <div>
+                <span class="dash-action-title">Live Camera Recognition</span>
+                <span class="dash-action-desc">Real-time dual-hand HUD recognition and telemetry</span>
+              </div>
+            </button>
+          </div>
+        </section>
+
+        <!-- Two Column Overview: Recent Translations & Library Spotlight -->
+        <div class="dashboard-two-col">
+          <!-- Recent Translations Card -->
+          <section class="glass-card">
+            <div class="card-header">
+              <div class="header-left">
+                <div class="card-icon violet-glow">📜</div>
+                <div>
+                  <h3 class="card-title" style="font-size:1.05rem;">Recent Translated Sentences</h3>
+                  <p class="card-caption">Latest ISL sentences converted from gestures</p>
+                </div>
+              </div>
+              <button class="btn btn-secondary btn-sm" id="btnDashViewAllTranslations">View All &rarr;</button>
+            </div>
+            <div class="dash-recent-list" id="dashRecentTranslationsList">
+              <!-- Dynamically populated -->
+            </div>
+          </section>
+
+          <!-- Library Spotlight Card -->
+          <section class="glass-card">
+            <div class="card-header">
+              <div class="header-left">
+                <div class="card-icon cyan-glow">📚</div>
+                <div>
+                  <h3 class="card-title" style="font-size:1.05rem;">Sign Vocabulary Spotlight</h3>
+                  <p class="card-caption">Stored signs with descriptions and sample counts</p>
+                </div>
+              </div>
+              <button class="btn btn-secondary btn-sm" id="btnDashOpenLibrary">Open Library &rarr;</button>
+            </div>
+            <div class="dash-recent-list" id="dashRecentSignsList">
+              <!-- Dynamically populated -->
+            </div>
+          </section>
+        </div>
+
+      </main>
+    </div>
+
+    <!-- ====================================================================
+         VIEW 2: SIGN LANGUAGE LIBRARY
+         ==================================================================== -->
+    <div class="tab-content-view" id="libraryTab" style="display:none;">
+      <main class="library-view">
+        
+        <!-- Header & Quick Action -->
+        <section class="glass-card library-toolbar-card">
+          <div class="library-toolbar-row">
+            <div class="header-left">
+              <div class="card-icon cyan-glow">📚</div>
+              <div>
+                <h2 class="card-title">Sign Language Library</h2>
+                <p class="card-caption">Explore, search, edit, and manage all saved signs stored in the persistent database</p>
+              </div>
+            </div>
+            <div class="sm-actions-row">
+              <button class="btn btn-primary" id="btnLibraryAddSign">
+                ➕ Add New Sign
+              </button>
+              <button class="btn btn-accent" id="btnLibraryTrainModel">
+                ⚡ Train Recognition Model
+              </button>
+              <button class="btn btn-secondary" id="btnLibraryRefresh">
+                🔄 Refresh Library
+              </button>
+            </div>
+          </div>
+
+          <!-- Search & Filter Controls -->
+          <div class="library-toolbar-row" style="margin-top:1.25rem;">
+            <div class="library-search-wrap">
+              <span class="search-icon">🔍</span>
+              <input type="text" class="library-search-input" id="searchLibraryInput" placeholder="Search signs by name, label, meaning, or execution description (e.g. THANK_YOU, Namaste, gratitude)...">
+            </div>
+            <div style="display:flex; align-items:center; gap:0.65rem;">
+              <label for="selectLibrarySort" style="font-size:0.78rem; color:var(--text-muted); font-weight:600;">SORT:</label>
+              <select id="selectLibrarySort" class="meta-select" style="min-width:160px;">
+                <option value="name_asc">Name (A-Z)</option>
+                <option value="name_desc">Name (Z-A)</option>
+                <option value="samples_desc">Most Samples</option>
+                <option value="trained_first">Trained in AI First</option>
+                <option value="recent">Recently Added</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Category Filter Pills -->
+          <div class="library-filter-pills" id="libraryCategoryPills">
+            <button class="filter-pill active" data-category="ALL">All Categories (<span id="libCountAll">0</span>)</button>
+            <button class="filter-pill" data-category="Greetings">Greetings</button>
+            <button class="filter-pill" data-category="Politeness">Politeness</button>
+            <button class="filter-pill" data-category="Identity">Identity</button>
+            <button class="filter-pill" data-category="Accessibility">Accessibility</button>
+            <button class="filter-pill" data-category="Emergency">Emergency</button>
+            <button class="filter-pill" data-category="Daily Needs">Daily Needs</button>
+            <button class="filter-pill" data-category="General">General</button>
+            <button class="filter-pill" data-category="Custom">Custom</button>
+          </div>
+        </section>
+
+        <!-- Sign Cards Grid -->
+        <section class="library-cards-grid" id="libraryCardsGrid">
+          <!-- Dynamically populated sign cards -->
+        </section>
+
+      </main>
+    </div>
+
+    <!-- ====================================================================
+         VIEW 3: ADD NEW SIGN
+         ==================================================================== -->
+    <div class="tab-content-view" id="addSignTab" style="display:none;">
+      <main class="add-sign-view">
+        <div class="add-sign-container">
+          <section class="glass-card add-sign-card">
+            <div class="card-header" style="margin-bottom:1.5rem;">
+              <div class="header-left">
+                <div class="card-icon emerald-glow">➕</div>
+                <div>
+                  <h2 class="card-title">Register New Sign to Library</h2>
+                  <p class="card-caption">Define sign name, meaning, execution instructions, and associate demonstration media</p>
+                </div>
+              </div>
+              <button class="btn btn-secondary btn-sm" id="btnBackToLibrary">&larr; Back to Library</button>
+            </div>
+
+            <!-- Form Validation Feedback Message -->
+            <div id="addSignAlert" style="display:none; margin-bottom:1.25rem;"></div>
+
+            <form id="formAddNewSign">
+              <div class="form-grid-2">
+                <div class="form-field-group">
+                  <label class="form-label" for="inputSignName">Sign Name / Gloss (UPPERCASE) *</label>
+                  <input type="text" id="inputSignName" class="form-input" placeholder="e.g. NAMASTE, PEACE, WATER" required autocomplete="off">
+                  <span style="font-size:0.72rem; color:var(--text-dim);">Unique code used for machine learning token recognition (letters and underscores).</span>
+                </div>
+                <div class="form-field-group">
+                  <label class="form-label" for="inputSignLabel">Display Title / Label</label>
+                  <input type="text" id="inputSignLabel" class="form-input" placeholder="e.g. Namaste / Traditional Greeting">
+                  <span style="font-size:0.72rem; color:var(--text-dim);">Human-friendly display name shown in dictionary and library.</span>
+                </div>
+              </div>
+
+              <div class="form-grid-2">
+                <div class="form-field-group">
+                  <label class="form-label" for="selectSignCategory">Sign Category *</label>
+                  <select id="selectSignCategory" class="form-select">
+                    <option value="Greetings">Greetings</option>
+                    <option value="Politeness">Politeness</option>
+                    <option value="Identity">Identity</option>
+                    <option value="Accessibility">Accessibility</option>
+                    <option value="Emergency">Emergency</option>
+                    <option value="Daily Needs">Daily Needs</option>
+                    <option value="General">General</option>
+                    <option value="Custom" selected>Custom</option>
+                  </select>
+                </div>
+                <div class="form-field-group">
+                  <label class="form-label" for="inputSignMeaning">Meaning & Semantic Definition *</label>
+                  <input type="text" id="inputSignMeaning" class="form-input" placeholder="e.g. Traditional respectful greeting meaning I honor you." required>
+                  <span style="font-size:0.72rem; color:var(--text-dim);">Clear explanation of what the sign communicates in Indian Sign Language.</span>
+                </div>
+              </div>
+
+              <div class="form-field-group">
+                <label class="form-label" for="textareaSignDescription">Execution Description & Pose Instructions</label>
+                <textarea id="textareaSignDescription" class="form-textarea" placeholder="Describe the hand shape, finger extensions, palm orientation, location, and motion (e.g. Palms pressed together at chest level, slight bow)..."></textarea>
+              </div>
+
+              <!-- Media Association Mode Selector -->
+              <div class="form-field-group">
+                <label class="form-label">Reference Media / Feature Data (Optional)</label>
+                <div class="media-option-tabs">
+                  <button type="button" class="media-tab-btn active" id="tabMediaSnapshot">
+                    📸 Capture Live Camera Landmark
+                  </button>
+                  <button type="button" class="media-tab-btn" id="tabMediaUpload">
+                    📂 Upload Photo or Video File
+                  </button>
+                  <button type="button" class="media-tab-btn" id="tabMediaNone">
+                    📝 Definition Only
+                  </button>
+                </div>
+
+                <!-- Subpanel 1: Live Snapshot Landmark Capture -->
+                <div class="media-subpanel" id="panelMediaSnapshot">
+                  <div style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:1rem;">
+                    <div>
+                      <h4 style="font-size:0.9rem; font-weight:600; margin-bottom:0.25rem;">Live Hand Landmark Pose Snapshot</h4>
+                      <p style="font-size:0.78rem; color:var(--text-muted); margin:0;">Position hand in camera view, then click Capture to embed 21 joint landmarks into this sign definition.</p>
+                    </div>
+                    <div style="display:flex; gap:0.5rem;">
+                      <button type="button" class="btn btn-secondary btn-sm" id="btnSnapActivateCamera">
+                        📹 Start Camera Preview
+                      </button>
+                      <button type="button" class="btn btn-primary btn-sm" id="btnSnapCapture">
+                        📸 Capture Landmark Pose
+                      </button>
+                    </div>
+                  </div>
+                  <!-- Camera View for Snapshot -->
+                  <div id="snapshotCameraContainer" style="margin-top:1rem; display:none; position:relative; width:100%; max-width:480px; aspect-ratio:4/3; background:#000; border-radius:var(--radius-md); overflow:hidden;">
+                    <video id="snapshotVideo" autoplay playsinline muted style="width:100%; height:100%; object-fit:cover;"></video>
+                    <canvas id="snapshotCanvas" width="480" height="360" style="position:absolute; top:0; left:0; width:100%; height:100%; pointer-events:none;"></canvas>
+                  </div>
+                  <div id="snapshotCapturedBadge" style="display:none; margin-top:0.75rem; padding:0.5rem 0.85rem; background:rgba(16,185,129,0.15); border:1px solid rgba(16,185,129,0.3); border-radius:var(--radius-sm); font-size:0.8rem; color:#34d399;">
+                    ✓ 21 Hand keypoint landmarks captured and ready to save with sign!
+                  </div>
+                </div>
+
+                <!-- Subpanel 2: Upload Reference File -->
+                <div class="media-subpanel" id="panelMediaUpload" style="display:none;">
+                  <h4 style="font-size:0.9rem; font-weight:600; margin-bottom:0.25rem;">Upload Example Media Reference</h4>
+                  <p style="font-size:0.78rem; color:var(--text-muted); margin-bottom:0.85rem;">Upload an image (.png, .jpg) or demonstration video (.mp4, .webm) for this sign.</p>
+                  <input type="file" id="inputSignMediaFile" class="form-input" accept="image/png,image/jpeg,image/webp,video/mp4,video/webm">
+                </div>
+
+                <!-- Subpanel 3: Definition Only -->
+                <div class="media-subpanel" id="panelMediaNone" style="display:none;">
+                  <p style="font-size:0.82rem; color:var(--text-muted); margin:0;">Sign will be created as a dictionary entry. You can record video or camera training samples at any time from the Library or Trainer tabs.</p>
+                </div>
+              </div>
+
+              <!-- Submit Buttons -->
+              <div style="display:flex; justify-content:flex-end; gap:0.75rem; margin-top:1.5rem; padding-top:1.25rem; border-top:1px solid var(--border-subtle);">
+                <button type="button" class="btn btn-secondary" id="btnCancelAddSign">Cancel</button>
+                <button type="submit" class="btn btn-primary btn-large" id="btnSubmitNewSign">
+                  💾 Save Sign to Library
+                </button>
+              </div>
+            </form>
+          </section>
+        </div>
+      </main>
+    </div>
+
+    <!-- ====================================================================
+         VIEW 4: LIVE SENTENCE RECOGNITION & TELEMETRY
+         ==================================================================== -->
+    <div class="tab-content-view" id="recognitionTab" style="display:none;">
+      <main class="kinex-grid">
+        
+        <!-- Left Column: Vision Subsystem & Dual-Hand Pose Canvas -->
+        <section class="glass-card vision-panel" id="visionPanel">
+          <div class="card-header">
+            <div class="header-left">
+              <div class="card-icon cyan-glow">📷</div>
+              <div>
+                <h2 class="card-title">Vision Subsystem & Continuous Action Tracking</h2>
+                <p class="card-caption">Dual-Hand Landmark Pose (42 KP) • Temporal Dwell Debounce & Stability Engine</p>
+              </div>
+            </div>
+            <div class="live-fps-badge" id="liveFpsBadge">
+              <span class="mono-val" id="valFps">30.0</span> <span class="unit">FPS</span>
+            </div>
+          </div>
+
+          <div class="video-canvas-container" id="videoCanvasContainer">
+            <canvas id="skeletonCanvas" width="640" height="480"></canvas>
+            
+            <!-- Tracking Overlay HUD -->
+            <div class="tracking-hud" id="trackingHud">
+              <div class="hud-item">
+                <span class="hud-label">TRACKING</span>
+                <span class="hud-val" id="hudTrackState">WAITING FOR HANDS</span>
+              </div>
+              <div class="hud-item">
+                <span class="hud-label">LANDMARKS</span>
+                <span class="hud-val" id="hudJointCount">0 / 42 KP</span>
+              </div>
+              <div class="hud-item">
+                <span class="hud-label">ACTION DWELL</span>
+                <span class="hud-val" id="hudDwellState">IDLE</span>
+              </div>
+            </div>
+
+            <!-- Standby Overlay for Glove Only Mode -->
+            <div class="glove-standby-overlay" id="gloveStandbyOverlay" style="display:none;">
+              <div class="standby-box">
+                <div class="standby-icon">🧤</div>
+                <h3>Smart Glove Sentence Mode Active</h3>
+                <p>Generating sentence actions purely from ESP32 Flex Sensors & IMU tilt</p>
+              </div>
+            </div>
+
+            <!-- Offline Placeholder -->
+            <div class="camera-placeholder" id="cameraPlaceholder">
+              <div class="placeholder-content">
+                <div class="camera-icon-large">🖐️</div>
+                <h3>Camera Inactive</h3>
+                <p>Activate your webcam to track dual-hand sign sentences, or test with the interactive synthetic hand feed</p>
+                <button class="btn btn-primary" id="btnStartCamera">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 7l-7 5 7 5V7z"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>
+                  Activate Camera for Sentences
+                </button>
+              </div>
+            </div>
+
+            <!-- In-Viewport Camera Diagnostic Error Card -->
+            <div class="camera-error-card" id="cameraErrorCard" style="display:none;">
+              <div class="error-badge">⚠️ CAMERA CONFLICT DETECTED</div>
+              <h4 id="cameraErrorTitle">Webcam in Use by Another Application</h4>
+              <p id="cameraErrorDesc">
+                Windows returned <code>NotReadableError: Could not start video source</code>. Another application (such as the <strong>Windows Camera App</strong>, Teams, Zoom, Discord, or Skype) has exclusive access to the camera hardware.
+              </p>
+              <div class="error-steps-box">
+                <div class="error-step-item">
+                  <span class="step-num">1.</span>
+                  <span><strong>Close background camera apps:</strong> Please close the <strong>Windows Camera app</strong> or video apps running in your taskbar.</span>
+                </div>
+                <div class="error-step-item">
+                  <span class="step-num">2.</span>
+                  <span><strong>Click Retry:</strong> Once released, click <strong>"Retry Camera"</strong> below.</span>
+                </div>
+                <div class="error-step-item">
+                  <span class="step-num">3.</span>
+                  <span><strong>Or Test Instantly:</strong> Click <strong>"Test Hand Feed"</strong> to test live ISL recognition immediately without needing a camera!</span>
+                </div>
+              </div>
+              <div class="camera-error-actions">
+                <button class="btn btn-primary" id="btnRetryCamera">🔄 Retry Camera</button>
+                <button class="btn btn-accent" id="btnErrorVirtualStream">🎮 Launch Test Hand Feed</button>
+                <button class="btn btn-secondary" id="btnDismissCameraError">Dismiss</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Vision Control Toolbar -->
+          <div class="vision-toolbar">
+            <div class="toolbar-group">
+              <button class="btn btn-secondary" id="btnToggleCamera">
+                <span id="btnCameraIcon">▶</span> <span id="btnCameraText">Start Camera</span>
+              </button>
+              <select class="custom-select camera-select" id="selectCameraDevice" title="Select Video Input Device">
+                <option value="">🎥 Camera: Default</option>
+              </select>
+              <button class="btn btn-secondary btn-virtual-stream" id="btnToggleVirtualStream" title="Toggle Animated Virtual Hand Feed for testing without webcam">
+                🎮 <span id="btnVirtualText">Test Hand Feed</span>
+              </button>
+              <button class="btn btn-secondary" id="btnCaptureFrame">
+                📸 Snapshot
+              </button>
+              <label class="btn btn-secondary file-upload-label" for="imageUploadInput">
+                📁 Upload Image
+                <input type="file" id="imageUploadInput" accept="image/jpeg,image/png" style="display:none;">
+              </label>
+            </div>
+
+            <!-- Continuous Sentence Simulator -->
+            <div class="toolbar-group sentence-simulator-group">
+              <label for="selectSentencePreset" class="sim-label">⚡ Sentence Preset:</label>
+              <select class="custom-select" id="selectSentencePreset">
+                <option value="p1">[I] + [INDIAN] ➔ "I am an Indian citizen."</option>
+                <option value="p2">[MORNING] + [THANK_YOU] ➔ "Good morning! Thank you very much."</option>
+                <option value="p3">[I] + [HEARING] + [THANK_YOU] ➔ "I am hard of hearing; thank you..."</option>
+                <option value="p4">[THANK_YOU] + [BYE] ➔ "Thank you so much, goodbye!"</option>
+                <option value="p5">[MORNING] + [I] + [INDIAN] ➔ "Good morning! I am a proud Indian."</option>
+              </select>
+              <button class="btn btn-accent" id="btnSimulateSentence" title="Animates consecutive sign actions and synthesizes the full sentence">
+                ⚡ Simulate Sentence
+              </button>
+            </div>
+          </div>
+        </section>
+
+        <!-- Right Column Top: Continuous ISL Sentence Output & Action Stream -->
+        <section class="glass-card recognition-panel" id="recognitionPanel">
+          <div class="card-header">
+            <div class="header-left">
+              <div class="card-icon violet-glow">💬</div>
+              <div>
+                <h2 class="card-title">Continuous ISL Sentence Output</h2>
+                <p class="card-caption">Real-Time ISL-to-English Grammar Synthesizer • Anti-Jitter Stability Gating</p>
+              </div>
+            </div>
+            <div class="gate-status-badge" id="gateStatusBadge">
+              <span class="gate-dot"></span> <span id="gateStatusText">SENTENCE ENGINE READY</span>
+            </div>
+          </div>
+
+          <!-- Primary Active Sentence Hero Card (PROMINENT SENTENCE DISPLAY) -->
+          <div class="active-sentence-hero" id="activeSentenceHero">
+            <div class="hero-top-meta">
+              <div class="sentence-hero-badge">
+                <span class="pulse-ring"></span>
+                <span>GENERATED SENTENCE OUTPUT</span>
+              </div>
+              <div class="hero-timestamp mono-val" id="sentenceTimestamp">00:00:00</div>
+            </div>
+
+            <!-- Big Glowing Formatted Sentence -->
+            <div class="active-sentence-quote-wrapper">
+              <span class="quote-sign open-quote">“</span>
+              <div class="active-sentence-text" id="activeSentenceDisplay">
+                I am an Indian citizen.
+              </div>
+              <span class="quote-sign close-quote">”</span>
+            </div>
+
+            <!-- Audio Wave Visualizer on Speech -->
+            <div class="audio-wave-strip" id="audioWaveStrip" style="display:none;">
+              <span class="wave-bar"></span>
+              <span class="wave-bar"></span>
+              <span class="wave-bar"></span>
+              <span class="wave-bar"></span>
+              <span class="wave-bar"></span>
+              <span class="wave-label">Synthesizing vocal speech output...</span>
+            </div>
+
+            <!-- Action Sequence Breadcrumbs / Token Rail -->
+            <div class="sentence-action-stream-box">
+              <div class="action-stream-header">
+                <span class="as-label">CAPTURED GESTURE ACTIONS CHAIN:</span>
+                <span class="as-count" id="activeActionCount">2 Signs Locked In</span>
+              </div>
+              <div class="sentence-tokens-rail" id="sentenceTokensRail">
+                <span class="token-chip"><span class="chip-icon">☝️</span><span class="chip-name">I</span><span class="chip-conf">97%</span></span>
+                <span class="token-arrow">➔</span>
+                <span class="token-chip"><span class="chip-icon">🇮🇳</span><span class="chip-name">INDIAN</span><span class="chip-conf">98%</span></span>
+              </div>
+            </div>
+
+            <!-- Anti-Jitter Dwell Stability Progress Meter -->
+            <div class="stability-lock-container">
+              <div class="stability-meta">
+                <span class="stab-label">CURRENT POSE STABILITY DWELL:</span>
+                <span class="stab-val mono-val" id="stabilityPercentText">POSE LOCKED IN (100%)</span>
+              </div>
+              <div class="stability-progress-track">
+                <div class="stability-progress-fill" id="stabilityProgressFill" style="width: 100%;"></div>
+              </div>
+              <div class="current-pose-row">
+                <span>Active Pose: <strong id="rawDetectedSign">INDIAN 🇮🇳</strong></span>
+                <span class="mono-val" id="rawDetectedConf">98.2% Confidence</span>
+              </div>
+            </div>
+
+            <!-- Sentence Action Controls Toolbar -->
+            <div class="sentence-action-toolbar">
+              <button class="btn btn-primary" id="btnCommitSentence" title="Permanently store this sentence in Sentence Actions & History">
+                💾 Store in Action Log
+              </button>
+              <button class="btn btn-secondary" id="btnSpeakActiveSentence" title="Read out the complete translated sentence with voice audio">
+                🔊 Speak Sentence
+              </button>
+              <button class="btn btn-secondary" id="btnUndoToken" title="Remove the last captured sign from current sentence">
+                ↩️ Undo Sign
+              </button>
+              <button class="btn btn-secondary btn-danger-subtle" id="btnClearActiveSentence" title="Reset active sentence buffer">
+                🗑️ Discard Buffer
+              </button>
+              <div class="auto-finalize-pill" title="Sentence auto-finalizes when hands pause for 1.5 seconds">
+                <span class="auto-dot"></span>
+                <span>Auto-Commit: ON (1.5s)</span>
+              </div>
+            </div>
+
+            <!-- Hero Bottom Metric Pills -->
+            <div class="hero-bottom-metrics">
+              <div class="metric-item">
+                <span class="m-label">SENTENCE CONFIDENCE</span>
+                <span class="m-val mono-val" id="sentenceConfidence">97.6%</span>
+              </div>
+              <div class="metric-item">
+                <span class="m-label">SYNTAX INTEGRITY</span>
+                <span class="m-val mono-val" id="sentenceSyntaxRule">ISL-SVO MAP</span>
+              </div>
+              <div class="metric-item">
+                <span class="m-label">ACTIVE MODALITY</span>
+                <span class="m-val mono-val" id="activeModeLabel">VISION</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Probability Distribution Meters for Landmark Classes -->
+          <div class="probabilities-container">
+            <h3 class="section-subheading">ISL VOCABULARY LANDMARK PROBABILITY DISTRIBUTION</h3>
+            <div class="probability-bars-list" id="probabilityBarsList"></div>
+          </div>
+        </section>
+
+        <!-- Right Column Bottom: ESP32 Smart Glove Telemetry -->
+        <section class="glass-card glove-panel" id="glovePanel">
+          <div class="card-header">
+            <div class="header-left">
+              <div class="card-icon emerald-glow">🧤</div>
+              <div>
+                <h2 class="card-title">ESP32 Smart Glove Telemetry Subsystem</h2>
+                <p class="card-caption">5x Flex Resistance Dividers • MPU6050 IMU @ 50 Hz • Feeds Into Sentence Actions</p>
+              </div>
+            </div>
+            <div class="serial-status-pill" id="serialStatusPill">
+              <span class="status-pulse-dot"></span>
+              <span id="serialStatusText">Glove Active (COM3)</span>
+            </div>
+          </div>
+
+          <div class="glove-telemetry-body">
+            <!-- 5 Flex Sensors Gauges -->
+            <div class="flex-sensors-module">
+              <div class="module-header-flex">
+                <h4 class="module-title">FINGER FLEXION RESISTANCE GAUGES</h4>
+                <span class="hint-pill">Drag sliders to test Glove Sentence Actions</span>
+              </div>
+              <div class="flex-gauges-grid" id="flexGaugesGrid">
+                
+                <div class="flex-gauge-col" data-finger="thumb">
+                  <span class="finger-name">Thumb</span>
+                  <div class="gauge-vertical-track">
+                    <div class="gauge-fill" id="flexFillThumb" style="height: 12%;"></div>
+                  </div>
+                  <input type="range" class="flex-range-slider" id="sliderThumb" min="0" max="100" value="12">
+                  <span class="gauge-pct mono-val" id="flexPctThumb">12%</span>
+                  <span class="gauge-pin">GPIO 33</span>
+                </div>
+
+                <div class="flex-gauge-col" data-finger="index">
+                  <span class="finger-name">Index</span>
+                  <div class="gauge-vertical-track">
+                    <div class="gauge-fill" id="flexFillIndex" style="height: 88%;"></div>
+                  </div>
+                  <input type="range" class="flex-range-slider" id="sliderIndex" min="0" max="100" value="88">
+                  <span class="gauge-pct mono-val" id="flexPctIndex">88%</span>
+                  <span class="gauge-pin">GPIO 32</span>
+                </div>
+
+                <div class="flex-gauge-col" data-finger="middle">
+                  <span class="finger-name">Middle</span>
+                  <div class="gauge-vertical-track">
+                    <div class="gauge-fill" id="flexFillMiddle" style="height: 91%;"></div>
+                  </div>
+                  <input type="range" class="flex-range-slider" id="sliderMiddle" min="0" max="100" value="91">
+                  <span class="gauge-pct mono-val" id="flexPctMiddle">91%</span>
+                  <span class="gauge-pin">GPIO 34</span>
+                </div>
+
+                <div class="flex-gauge-col" data-finger="ring">
+                  <span class="finger-name">Ring</span>
+                  <div class="gauge-vertical-track">
+                    <div class="gauge-fill" id="flexFillRing" style="height: 85%;"></div>
+                  </div>
+                  <input type="range" class="flex-range-slider" id="sliderRing" min="0" max="100" value="85">
+                  <span class="gauge-pct mono-val" id="flexPctRing">85%</span>
+                  <span class="gauge-pin">GPIO 35</span>
+                </div>
+
+                <div class="flex-gauge-col" data-finger="little">
+                  <span class="finger-name">Pinky</span>
+                  <div class="gauge-vertical-track">
+                    <div class="gauge-fill" id="flexFillLittle" style="height: 76%;"></div>
+                  </div>
+                  <input type="range" class="flex-range-slider" id="sliderLittle" min="0" max="100" value="76">
+                  <span class="gauge-pct mono-val" id="flexPctLittle">76%</span>
+                  <span class="gauge-pin">GPIO 36</span>
+                </div>
+
+              </div>
+
+              <!-- Quick Glove Test Presets -->
+              <div class="glove-presets-bar">
+                <span class="glove-preset-label">Pose Glove Token:</span>
+                <button class="btn btn-xs" onclick="setGlovePose('I')">Pinky ('I')</button>
+                <button class="btn btn-xs" onclick="setGlovePose('NAME')">2 Fingers ('NAME')</button>
+                <button class="btn btn-xs" onclick="setGlovePose('THANK_YOU')">Flat ('THANK YOU')</button>
+                <button class="btn btn-xs" onclick="setGlovePose('HEARING')">Index ('HEARING')</button>
+                <button class="btn btn-xs" onclick="setGlovePose('MORNING')">Open ('MORNING')</button>
+              </div>
+            </div>
+
+            <!-- MPU6050 IMU Orientation Card -->
+            <div class="imu-orientation-module">
+              <h4 class="module-title">MPU6050 ORIENTATION (COMPLEMENTARY FILTER)</h4>
+              <div class="imu-readings-row">
+                <div class="imu-box">
+                  <span class="imu-axis">PITCH</span>
+                  <span class="imu-val mono-val" id="imuPitch">+45.2°</span>
+                </div>
+                <div class="imu-box">
+                  <span class="imu-axis">ROLL</span>
+                  <span class="imu-val mono-val" id="imuRoll">-12.8°</span>
+                </div>
+                <div class="imu-box">
+                  <span class="imu-axis">YAW RATE</span>
+                  <span class="imu-val mono-val" id="imuYaw">1.4°/s</span>
+                </div>
+              </div>
+
+              <div class="tilt-visualizer-card">
+                <div class="tilt-plane" id="tiltPlane">
+                  <div class="tilt-arrow">🖐️ GLOVE TILT</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Bottom Span: System Latency Budget & Architectural Verification -->
+        <section class="glass-card full-width latency-panel" id="latencyPanel">
+          <div class="card-header">
+            <div class="header-left">
+              <div class="card-icon amber-glow">⚡</div>
+              <div>
+                <h2 class="card-title">Real-Time Sentence Latency Budget Breakdown (Target: &le; 30 ms)</h2>
+                <p class="card-caption">End-to-end processing pipeline latency including continuous ISL sentence syntax assembly</p>
+              </div>
+            </div>
+            <div class="total-latency-badge" id="totalLatencyBadge">
+              TOTAL: <span class="mono-val" id="valTotalLatency">19.2</span> ms
+            </div>
+          </div>
+
+          <div class="latency-budget-bar-wrapper">
+            <div class="latency-budget-bar">
+              <div class="segment seg-acq" style="width: 10%;">2.5 ms (Acq)</div>
+              <div class="segment seg-yolo" style="width: 50%;">12.0 ms (Pose)</div>
+              <div class="segment seg-gate" style="width: 5%;">0.8 ms</div>
+              <div class="segment seg-feat" style="width: 6%;">1.2 ms</div>
+              <div class="segment seg-cls" style="width: 7%;">1.5 ms</div>
+              <div class="segment seg-syn" style="width: 6%;">1.2 ms (Syntax)</div>
+              <div class="segment seg-headroom" style="width: 16%;">Headroom (+10.8 ms)</div>
+            </div>
+          </div>
+
+          <div class="audit-badges-footer">
+            <div class="audit-badge verified">
+              <span class="badge-icon">✓</span>
+              <span>Continuous ISL Sentence Translation Engine</span>
+            </div>
+            <div class="audit-badge verified">
+              <span class="badge-icon">✓</span>
+              <span>Temporal Dwell Stability Gating (Anti-Jitter)</span>
+            </div>
+            <div class="audit-badge verified">
+              <span class="badge-icon">✓</span>
+              <span>Persistent Sentence Action History Store</span>
+            </div>
+            <div class="audit-badge verified">
+              <span class="badge-icon">✓</span>
+              <span>Voice TTS Speech Synthesis for Full Sentences</span>
+            </div>
+          </div>
+        </section>
+
+      </main>
+    </div>
+
+    <!-- ====================================================================
+         VIEW 5: LIVE SIGN LANGUAGE TO SENTENCE (VIDEO CAPTURE & RECOGNITION)
+         ==================================================================== -->
+    <div class="tab-content-view" id="videoSentenceTab" style="display:none;">
+      <main class="video-sentence-view">
+        
+        <!-- Header Banner -->
+        <section class="glass-card" style="padding:1.25rem 1.75rem;">
+          <div class="card-header" style="margin-bottom:0;">
+            <div class="header-left">
+              <div class="card-icon amber-glow">🎬</div>
+              <div>
+                <h2 class="card-title">Live Sign Language to Sentence</h2>
+                <p class="card-caption">Capture sign language gestures through your device's camera or upload a video clip, recognize sequential signs, and synthesize meaningful sentences according to ISL grammar.</p>
+              </div>
+            </div>
+            <div class="hero-status-pill">
+              <span class="pill-dot"></span> Pipeline: <strong>YOLO26 Kinematics + ISL Syntax</strong>
+            </div>
+          </div>
+        </section>
+
+        <!-- Two Column Studio: Left Video Capture / Upload, Right Sentence Translation Results -->
+        <div class="video-sentence-grid">
+          
+          <!-- LEFT COLUMN: CAMERA & VIDEO RECORDING CONTROLS -->
+          <section class="glass-card video-rec-card">
+            <div class="card-header">
+              <div class="header-left">
+                <div class="card-icon cyan-glow">📹</div>
+                <div>
+                  <h3 class="card-title" style="font-size:1.05rem;">Camera & Video Recording</h3>
+                  <p class="card-caption">Record a video clip of your sign gestures or upload a file</p>
+                </div>
+              </div>
+              <div id="videoRecTimerBadge" class="rec-badge-overlay" style="display:none; position:static;">
+                <span class="rec-pulse-dot"></span> <span id="valVideoRecTimer">00:00</span>
+              </div>
+            </div>
+
+            <!-- Video Viewport (Handles Live Feed & Playback Preview) -->
+            <div class="video-rec-viewport" id="videoSentenceViewport">
+              <!-- Live Camera Feed -->
+              <video id="videoSentenceLiveFeed" autoplay playsinline muted></video>
+              <canvas id="videoSentenceOverlayCanvas" width="640" height="480" style="position:absolute; inset:0; width:100%; height:100%; pointer-events:none;"></canvas>
+
+              <!-- Recorded Playback Preview Video Player (hidden until recording stops or file uploaded) -->
+              <video id="videoSentencePlayer" class="video-playback-preview" controls playsinline style="display:none;"></video>
+
+              <!-- Inactive Placeholder -->
+              <div class="camera-placeholder" id="videoSentencePlaceholder">
+                <div class="placeholder-content">
+                  <div class="camera-icon-large">📹</div>
+                  <h3>Camera Standby</h3>
+                  <p>Activate your webcam to record sign language sentences or upload an existing video clip</p>
+                  <button class="btn btn-primary" id="btnStartVideoSentenceCamera" onclick="startVideoSentenceCamera()">
+                    ▶ Start Camera
+                  </button>
+                </div>
+              </div>
+
+              <!-- Permission / Conflict Error Card -->
+              <div class="camera-error-card" id="videoSentenceCameraError" style="display:none;">
+                <div class="error-badge">⚠️ CAMERA ACCESS NOTICE</div>
+                <h4>Camera Inactive or In Use</h4>
+                <p id="videoSentenceCameraErrorMsg">Please allow camera permissions or upload a pre-recorded video file below.</p>
+                <div class="camera-error-actions">
+                  <button class="btn btn-primary" onclick="startVideoSentenceCamera()">🔄 Retry Camera</button>
+                  <button class="btn btn-secondary" onclick="dismissVideoSentenceError()">Dismiss</button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Controls Toolbar -->
+            <div class="video-rec-toolbar">
+              <div style="display:flex; gap:0.5rem; flex-wrap:wrap;">
+                <button class="btn btn-secondary" id="btnToggleVideoCamera" onclick="toggleVideoSentenceCamera()">
+                  <span id="txtVideoCameraToggle">▶ Start Camera</span>
+                </button>
+                <button class="btn btn-secondary" id="btnSwitchVideoCamera" onclick="switchVideoCameraFacing()" title="Switch between front and back camera on mobile devices">
+                  🔄 Flip Camera
+                </button>
+              </div>
+
+              <!-- Recording Action Buttons -->
+              <div style="display:flex; gap:0.5rem; flex-wrap:wrap;">
+                <button class="btn btn-primary btn-record-single" id="btnStartVideoRecord" onclick="startVideoRecording()" disabled>
+                  🔴 Start Recording
+                </button>
+                <button class="btn btn-danger" id="btnStopVideoRecord" onclick="stopVideoRecording()" style="display:none;">
+                  ⏹ Stop Recording
+                </button>
+              </div>
+            </div>
+
+            <!-- Video File Upload Alternative & Playback Actions -->
+            <div style="margin-top:1.25rem; padding-top:1.25rem; border-top:1px solid var(--border-subtle);">
+              <div style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:0.75rem; margin-bottom:0.75rem;">
+                <label style="font-size:0.8rem; font-weight:600; color:var(--text-muted);">OR UPLOAD VIDEO FILE (.mp4, .webm, .mov):</label>
+                <input type="file" id="inputVideoUpload" accept="video/mp4,video/webm,video/quicktime,video/x-msvideo" style="display:none;" onchange="handleVideoFileUpload(event)">
+                <button class="btn btn-secondary btn-sm" onclick="document.getElementById('inputVideoUpload').click()">
+                  📂 Choose Video File
+                </button>
+              </div>
+
+              <!-- Process Video Call to Action Banner -->
+              <div id="videoReadyToProcessBanner" style="display:none; margin-top:1rem; padding:1rem; background:rgba(6,182,212,0.1); border:1px solid rgba(6,182,212,0.3); border-radius:var(--radius-md);">
+                <div style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:0.75rem;">
+                  <div>
+                    <strong style="color:#38bdf8; font-size:0.9rem;">✓ Video Ready for Analysis!</strong>
+                    <p style="font-size:0.78rem; color:var(--text-muted); margin:0.2rem 0 0 0;" id="txtVideoReadyMeta">Recorded video ready to process.</p>
+                  </div>
+                  <div style="display:flex; gap:0.5rem;">
+                    <button class="btn btn-secondary btn-sm" onclick="discardRecordedVideo()">🔄 Discard</button>
+                    <button class="btn btn-primary" id="btnProcessVideoNow" onclick="executeProcessVideo()">
+                      🚀 Process Video & Translate
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Processing Animation Progress Bar -->
+            <div id="videoProcessingProgress" style="display:none; margin-top:1.25rem;">
+              <div style="display:flex; justify-content:space-between; font-size:0.82rem; margin-bottom:0.4rem;">
+                <span id="txtVideoProcessStatus" style="color:#38bdf8;">Extracting video frames and estimating hand poses...</span>
+                <span class="mono-val" id="valVideoProcessPct">0%</span>
+              </div>
+              <div class="train-progress-bar">
+                <div class="train-progress-fill" id="fillVideoProcess" style="width: 0%;"></div>
+              </div>
+            </div>
+
+          </section>
+
+          <!-- RIGHT COLUMN: SIGN-TO-SENTENCE TRANSLATION RESULTS -->
+          <section class="glass-card video-results-card">
+            <div class="card-header">
+              <div class="header-left">
+                <div class="card-icon emerald-glow">📜</div>
+                <div>
+                  <h3 class="card-title" style="font-size:1.05rem;">Synthesized Sentence & Analysis</h3>
+                  <p class="card-caption">Recognized signs mapped to library, arranged according to ISL grammar</p>
+                </div>
+              </div>
+              <div class="badge-status trained" id="badgeTranslationConfidence" style="display:none;">CONFIDENCE: 0.0%</div>
+            </div>
+
+            <!-- Recognized Signs Timeline & Chips -->
+            <div>
+              <label class="form-label">CHRONOLOGICAL SIGN ACTION SEQUENCE:</label>
+              <div class="timeline-chips-container" id="timelineSignsChips">
+                <span style="font-size:0.8rem; color:var(--text-dim);">No signs detected yet. Record or upload a video clip on the left to analyze gestures.</span>
+              </div>
+            </div>
+
+            <!-- Synthesized Sentence Editor -->
+            <div class="sentence-editor-box">
+              <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:0.4rem;">
+                <label class="form-label" style="margin:0;">GENERATED SENTENCE (EDITABLE):</label>
+                <span class="grammar-rule-badge" id="badgeGrammarRule">WAITING FOR SIGNS</span>
+              </div>
+              <textarea id="videoTranslatedSentence" class="form-textarea" placeholder="The translated sentence will appear here. You can manually edit or adjust phrasing before saving..." rows="3"></textarea>
+              <p style="font-size:0.75rem; color:#94a3b8; margin-top:0.35rem;" id="txtTranslationNotice">
+                💡 <em>Sentences are synthesized using Indian Sign Language (ISL) grammar heuristics. You can edit this draft sentence freely before copying or saving.</em>
+              </p>
+            </div>
+
+            <!-- Action Toolbar for Generated Sentence -->
+            <div class="results-action-row">
+              <button class="btn btn-primary" id="btnCopyVideoSentence" onclick="copyVideoSentence()">
+                📋 Copy Sentence
+              </button>
+              <button class="btn btn-secondary" id="btnSpeakVideoSentence" onclick="speakVideoSentence()">
+                🔊 Speak (TTS)
+              </button>
+              <button class="btn btn-accent" id="btnSaveVideoSentence" onclick="saveVideoSentenceTranslation()">
+                💾 Save Translation
+              </button>
+              <button class="btn btn-secondary" id="btnClearVideoSentence" onclick="clearVideoSentenceResults()">
+                🔄 Clear & Retry
+              </button>
+            </div>
+
+            <!-- Translation Saved Feedback -->
+            <div id="videoSentenceSaveFeedback" style="display:none; margin-top:1rem; padding:0.75rem 1rem; background:rgba(16,185,129,0.15); border:1px solid rgba(16,185,129,0.3); border-radius:var(--radius-md); font-size:0.82rem; color:#34d399;">
+              ✓ Translation saved to persistent database! View in Translation History tab anytime.
+            </div>
+
+          </section>
+
+        </div>
+
+      </main>
+    </div>
+
+    <!-- ====================================================================
+         VIEW 6: DEDICATED SENTENCE ACTIONS & HISTORY STUDIO
+         ==================================================================== -->
+    <div class="tab-content-view" id="sentenceStudioTab" style="display:none;">
+      <main class="sentence-studio-container">
+        
+        <!-- Header Banner & Key Metrics Summary -->
+        <section class="glass-card studio-hero-card">
+          <div class="studio-hero-content">
+            <div class="hero-left">
+              <div class="studio-badge">
+                <span class="pulsing-ping"></span>
+                <span>PERSISTENT ACTION ARCHIVE</span>
+              </div>
+              <h2 class="studio-title">ISL Sentence Actions & History Studio</h2>
+              <p class="studio-desc">
+                Review, store, search, playback, and export the continuous actions and sentences you have executed.
+                Every action sequence captures time, modality, confidence, and natural English translations.
+              </p>
+            </div>
+            <div class="hero-right-metrics">
+              <div class="metric-glass-pill">
+                <span class="m-number mono-val" id="statTotalSentences">4</span>
+                <span class="m-title">Sentences Stored</span>
+              </div>
+              <div class="metric-glass-pill">
+                <span class="m-number mono-val" id="statTotalTokens">9</span>
+                <span class="m-title">Sign Actions Executed</span>
+              </div>
+              <div class="metric-glass-pill">
+                <span class="m-number mono-val" id="statAvgAccuracy">96.7%</span>
+                <span class="m-title">Average Accuracy</span>
+              </div>
+              <div class="metric-glass-pill">
+                <span class="m-number mono-val" id="statModalityCount">3 / 3</span>
+                <span class="m-title">Active Modes Logged</span>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Studio Grid: Left Builder Sandbox | Right Stored Action History -->
+        <div class="studio-workbench-grid">
+          
+          <!-- Left: Interactive Sentence Builder & Grammar Sandbox -->
+          <section class="glass-card sentence-sandbox-card">
+            <div class="card-header">
+              <div class="header-left">
+                <div class="card-icon cyan-glow">🧩</div>
+                <div>
+                  <h3 class="card-title">Interactive Sentence Builder Sandbox</h3>
+                  <p class="card-caption">Click gesture action chips to assemble and test ISL sentences instantly</p>
+                </div>
+              </div>
+            </div>
+
+            <!-- Gesture Action Palette -->
+            <div class="sandbox-palette">
+              <h4 class="module-title">QUICK GESTURE ACTION PALETTE</h4>
+              <p class="palette-hint">Click tokens below to add actions to the current draft sentence:</p>
+              <div class="palette-buttons-grid" id="paletteButtonsGrid">
+                <button class="palette-btn" data-sign="I">☝️ I</button>
+                <button class="palette-btn" data-sign="INDIAN">🇮🇳 INDIAN</button>
+                <button class="palette-btn" data-sign="MORNING">🌅 MORNING</button>
+                <button class="palette-btn" data-sign="THANK_YOU">🙏 THANK_YOU</button>
+                <button class="palette-btn" data-sign="NAME">🏷️ NAME</button>
+                <button class="palette-btn" data-sign="HEARING">👂 HEARING</button>
+                <button class="palette-btn" data-sign="BYE">👋 BYE</button>
+              </div>
+            </div>
+
+            <!-- Active Draft Sequence Box -->
+            <div class="sandbox-draft-box">
+              <div class="draft-header-row">
+                <span class="draft-label">DRAFT ACTION CHAIN:</span>
+                <span class="mono-val draft-count" id="draftTokenCount">0 Actions</span>
+              </div>
+              <div class="draft-chips-track" id="draftChipsTrack">
+                <span class="draft-empty-placeholder">Click signs above or use camera to build sentence...</span>
+              </div>
+            </div>
+
+            <!-- Real-Time Generated English Translation Box -->
+            <div class="sandbox-output-box">
+              <span class="output-label">SYNTHESIZED ENGLISH SENTENCE:</span>
+              <div class="sandbox-output-text" id="sandboxOutputText">
+                “Waiting for draft sign actions...”
+              </div>
+              <div class="sandbox-rule-pill" id="sandboxRulePill">
+                RULE: STANDBY
+              </div>
+            </div>
+
+            <!-- Sandbox Actions -->
+            <div class="sandbox-controls-row">
+              <button class="btn btn-primary" id="btnSandboxStoreAction">
+                💾 Store in History
+              </button>
+              <button class="btn btn-secondary" id="btnSandboxSpeak">
+                🔊 Speak
+              </button>
+              <button class="btn btn-secondary btn-danger-subtle" id="btnSandboxClear">
+                🧹 Clear Draft
+              </button>
+            </div>
+          </section>
+
+          <!-- Right: Stored Sentence Actions Log (The Core Action Store) -->
+          <section class="glass-card sentence-history-card">
+            <div class="card-header">
+              <div class="header-left">
+                <div class="card-icon violet-glow">📚</div>
+                <div>
+                  <h3 class="card-title">Stored Sentence Actions History</h3>
+                  <p class="card-caption">Chronological log of synthesized sentences, sign sequences, and telemetry</p>
+                </div>
+              </div>
+
+              <!-- History Filter & Export Controls -->
+              <div class="history-header-actions">
+                <div class="search-input-wrap">
+                  <span class="search-icon">🔍</span>
+                  <input type="text" class="search-input" id="searchSentencesInput" placeholder="Filter sentences or signs...">
+                </div>
+
+                <select class="custom-select filter-select" id="filterModalitySelect">
+                  <option value="ALL">All Modalities</option>
+                  <option value="vision">Vision Only</option>
+                  <option value="glove">Glove Only</option>
+                  <option value="fusion">Fusion Only</option>
+                </select>
+
+                <div class="export-btn-group">
+                  <button class="btn btn-secondary btn-sm" id="btnExportJSON" title="Download sentence history as JSON">
+                    📥 JSON
+                  </button>
+                  <button class="btn btn-secondary btn-sm" id="btnExportCSV" title="Download sentence history as CSV">
+                    📊 CSV
+                  </button>
+                  <button class="btn btn-secondary btn-sm" id="btnExportTXT" title="Download formatted transcript as TXT">
+                    📝 TXT
+                  </button>
+                  <button class="btn btn-secondary btn-danger-subtle btn-sm" id="btnClearHistory" title="Clear all stored history">
+                    🗑️ Clear
+                  </button>
+                  <button class="btn btn-accent btn-sm" id="btnLoadDemoActions" title="Restore sample demo sentences">
+                    ➕ Demo
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Stored Action Cards List -->
+            <div class="sentence-history-list" id="sentenceHistoryList">
+              <!-- Dynamically populated sentence cards -->
+            </div>
+          </section>
+
+        </div>
+      </main>
+    </div>
+
+    <!-- ====================================================================
+         TAB 3: INTERACTIVE CAMERA MODEL TRAINER WORKBENCH
+         ==================================================================== -->
+    <div class="tab-content-view" id="trainerTab" style="display:none;">
+      <main class="kinex-trainer-grid">
+        
+        <!-- Left: Trainer Camera Viewport & Live Data Acquisition -->
+        <section class="glass-card trainer-camera-card">
+          <div class="card-header">
+            <div class="header-left">
+              <div class="card-icon cyan-glow">🎥</div>
+              <div>
+                <h2 class="card-title">Sentence Sign Vocabulary Acquisition Viewport</h2>
+                <p class="card-caption">Record new ISL sign actions to expand your continuous sentence vocabulary</p>
+              </div>
+            </div>
+            <div class="recording-indicator" id="recordingIndicator" style="display:none;">
+              <span class="rec-dot"></span> RECORDING SAMPLES...
+            </div>
+          </div>
+
+          <!-- Video Canvas Wrap with Overlays & Flash Effect -->
+          <div class="trainer-canvas-wrap" id="trainerCanvasWrap">
+            <canvas id="trainerCanvas" width="640" height="480"></canvas>
+            <div class="trainer-capture-flash" id="trainerCaptureFlash"></div>
+
+            <!-- Guide and Status Overlays -->
+            <div class="trainer-guide-overlay">
+              <div class="guide-box">
+                <span class="target-sign-hud" id="hudTrainerSign">TARGET: THANK_YOU</span>
+                <span class="hud-pill hud-hand-pill" id="hudTrainerHand">WAITING FOR HAND</span>
+                <span class="hud-pill hud-quality-pill" id="hudTrainerQuality">QUALITY: READY</span>
+                <span class="hud-pill hud-mode-pill" id="hudTrainerMode">MODE: VISION ONLY</span>
+              </div>
+            </div>
+
+            <!-- Standby Overlay for Glove Only Mode -->
+            <div class="glove-standby-overlay" id="trainerGloveStandbyOverlay" style="display:none;">
+              <div class="standby-box">
+                <div class="standby-icon">🧤</div>
+                <h3>Glove Training Mode Active</h3>
+                <p>Capturing samples purely from 5 Flex Sensors + IMU telemetry</p>
+                <span class="hint-pill">Use sliders or test pose buttons below to pose</span>
+              </div>
+            </div>
+
+            <!-- Offline Placeholder for Trainer View -->
+            <div class="camera-placeholder" id="trainerCameraPlaceholder">
+              <div class="placeholder-content">
+                <div class="camera-icon-large">📹</div>
+                <h3>Camera Inactive</h3>
+                <p>Activate your webcam to start recording visual sign samples</p>
+                <button class="btn btn-primary" id="btnTrainerStartCamera">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 7l-7 5 7 5V7z"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>
+                  Activate Camera for Training
+                </button>
+              </div>
+            </div>
+
+            <!-- In-Viewport Trainer Diagnostic Error Card -->
+            <div class="camera-error-card" id="trainerCameraErrorCard" style="display:none;">
+              <div class="error-badge">⚠️ CAMERA CONFLICT DETECTED</div>
+              <h4>Webcam In Use by Another Application</h4>
+              <p id="trainerCameraErrorDesc">
+                Close background video apps (e.g. Windows Camera, Teams) or use Glove Mode below.
+              </p>
+              <div class="camera-error-actions">
+                <button class="btn btn-primary" id="btnTrainerRetryCamera">🔄 Retry Camera</button>
+                <button class="btn btn-accent" id="btnTrainerErrorVirtualStream">🎮 Launch Test Hand Feed</button>
+                <button class="btn btn-secondary" id="btnTrainerDismissError">Dismiss</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Training Recording Controls Toolbar -->
+          <div class="trainer-controls-bar">
+            
+            <!-- Camera Toggle & Mode Switch in Trainer -->
+            <div class="trainer-toolbar-subgroup">
+              <button class="btn btn-secondary" id="btnTrainerToggleCamera">
+                <span id="btnTrainerCameraIcon">▶</span> <span id="btnTrainerCameraText">Start Camera</span>
+              </button>
+              
+              <div class="trainer-mode-badge-wrap">
+                <span class="meta-label">RECORDING MODALITY:</span>
+                <div class="trainer-mode-pills" id="trainerModePills">
+                  <button class="t-mode-pill active" data-mode="vision">👁️ Mode 1: Vision</button>
+                  <button class="t-mode-pill" data-mode="glove">🧤 Mode 2: Glove</button>
+                  <button class="t-mode-pill" data-mode="fusion">⚡ Mode 3: Fusion</button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Capture Actions -->
+            <div class="record-btn-group">
+              <button class="btn btn-primary btn-record-single" id="btnRecordSingle" title="Capture 1 labeled frame (Shortcut: Space)">
+                📸 Capture 1 Sample (Space)
+              </button>
+              <button class="btn btn-accent btn-record-continuous" id="btnRecordContinuous" title="Hold mouse button to stream-record frames">
+                🔴 Stream Record (Hold)
+              </button>
+              <button class="btn btn-secondary btn-record-interval" id="btnRecordInterval" title="Automatically captures 1 sample every 0.6 seconds">
+                <span id="intervalIcon">⏱️</span> <span id="intervalText">Auto Interval Capture</span>
+              </button>
+            </div>
+
+            <!-- Session Metadata Row -->
+            <div class="trainer-metadata-strip">
+              <div class="meta-field">
+                <label>Subject ID:</label>
+                <input type="text" id="metaSubjectId" value="S01" class="meta-input">
+              </div>
+              <div class="meta-field">
+                <label>Session:</label>
+                <input type="text" id="metaSessionId" value="01" class="meta-input">
+              </div>
+              <div class="meta-field">
+                <label>Lighting:</label>
+                <select id="metaLighting" class="meta-select">
+                  <option value="INDOOR_NORMAL">Indoor Normal</option>
+                  <option value="BRIGHT">Bright / Studio</option>
+                  <option value="DIM">Dim / Low Light</option>
+                </select>
+              </div>
+              <div class="meta-field">
+                <label>Handedness:</label>
+                <select id="metaHand" class="meta-select">
+                  <option value="RIGHT">Right Hand</option>
+                  <option value="LEFT">Left Hand</option>
+                  <option value="BOTH">Bilateral / Both</option>
+                </select>
+              </div>
+            </div>
+
+            <span class="record-hint">
+              💡 <strong>Pro-Tip:</strong> Record 15–25 samples per gesture with slight orientation & distance changes for maximum sentence accuracy.
+            </span>
+          </div>
+
+          <!-- Live Hand Sign Verifier & Real-Time Recognition Feedback -->
+          <div class="trainer-live-verifier" id="trainerLiveVerifier">
+            <div class="verifier-header">
+              <div class="vh-left">
+                <span class="pulsing-ping"></span>
+                <span class="verifier-title">REAL-TIME HAND SIGN VERIFIER</span>
+              </div>
+              <span class="verifier-status-badge badge-waiting" id="verifierStatusBadge">WAITING FOR HAND</span>
+            </div>
+            <div class="verifier-grid">
+              <div class="verifier-stat">
+                <span class="v-label">CURRENT DETECTED SIGN:</span>
+                <span class="v-val mono-val" id="verifierDetectedSign">—</span>
+              </div>
+              <div class="verifier-stat">
+                <span class="v-label">MODEL CONFIDENCE:</span>
+                <span class="v-val mono-val" id="verifierDetectedConf">0.0%</span>
+              </div>
+              <div class="verifier-stat">
+                <span class="v-label">ACTIVE TARGET SIGN:</span>
+                <span class="v-val mono-val" id="verifierTargetSign">THANK_YOU 🙏</span>
+              </div>
+              <div class="verifier-stat verifier-status-col">
+                <span class="v-label">POSE MATCH STATUS:</span>
+                <span class="v-match-pill pill-neutral" id="verifierMatchPill">Hold hand in camera</span>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Right: Gesture Class Selector & Dataset Workbench -->
+        <section class="glass-card trainer-workbench-card">
+          <div class="card-header">
+            <div class="header-left">
+              <div class="card-icon violet-glow">🏷️</div>
+              <div>
+                <h2 class="card-title">Target Sign Class & Sentence Vocabulary</h2>
+                <p class="card-caption">Select target sign or create a custom Indian Sign Language gesture for sentence construction</p>
+              </div>
+            </div>
+            <div class="total-samples-badge">
+              TOTAL: <span class="mono-val" id="totalSamplesCount">0</span> SAMPLES
+            </div>
+          </div>
+
+          <!-- Gesture Selection Pills -->
+          <div class="trainer-class-selector">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.6rem; flex-wrap:wrap; gap:0.5rem;">
+              <h4 class="module-title" style="margin:0;">SELECT ACTIVE TRAINING SIGN</h4>
+              <div class="active-sign-banner" id="activeSignBanner" style="font-size:0.8rem; background:rgba(56,189,248,0.12); border:1px solid rgba(56,189,248,0.3); padding:0.25rem 0.65rem; border-radius:20px;">Target Sign: <strong id="activeTargetSignName" style="color:#38bdf8;">THANK_YOU 🙏</strong></div>
+            </div>
+            <div class="trainer-pills-grid" id="trainerClassPills">
+              <button class="class-pill-btn active" data-class="THANK_YOU">THANK_YOU 🙏</button>
+              <button class="class-pill-btn" data-class="INDIAN">INDIAN 🇮🇳</button>
+              <button class="class-pill-btn" data-class="NAME">NAME 🏷️</button>
+              <button class="class-pill-btn" data-class="I">I ☝️</button>
+              <button class="class-pill-btn" data-class="HEARING">HEARING 👂</button>
+              <button class="class-pill-btn" data-class="MORNING">MORNING 🌅</button>
+              <button class="class-pill-btn" data-class="BYE">BYE 👋</button>
+            </div>
+
+            <!-- Custom Sign Creator -->
+            <div class="custom-class-creator">
+              <div style="display:flex; gap:0.5rem; align-items:center; flex-wrap:wrap;">
+                <input type="text" class="custom-sign-input" id="customSignInput" placeholder="Type custom sign name (e.g. NAMASTE, WATER, HELLO, PEACE)..." style="flex:1; min-width:220px;">
+                <button class="btn btn-secondary" id="btnAddCustomSign" title="Add sign pill to selector">+ Add Sign (Enter)</button>
+                <button class="btn btn-primary" id="btnQuickRecordTypedSign" title="Record a sample for the typed sign right now">📸 Quick Record</button>
+              </div>
+              <p style="font-size:0.75rem; color:#94a3b8; margin:0.4rem 0 0 0;">💡 <em>Type any sign name and press <strong>Enter</strong> to set as active sign, then show your hand and click <strong>Record Single Sample</strong> (or press <strong>Space</strong>).</em></p>
+            </div>
+          </div>
+
+          <!-- Dataset Sample Statistics List -->
+          <div class="trainer-dataset-stats">
+            <div class="stats-header-row">
+              <h4 class="module-title">RECORDED SAMPLES BY CLASS</h4>
+              <span class="sample-target-pill">Target: &ge; 10 / class</span>
+            </div>
+            <div class="class-sample-counters" id="classSampleCounters">
+              <!-- Dynamically populated sample count meters -->
+            </div>
+          </div>
+
+          <!-- Training Actions & Progress -->
+          <div class="training-execution-box">
+            <div class="train-btn-row">
+              <button class="btn btn-primary btn-large" id="btnTrainModelNow">
+                ⚡ Train Model Now
+              </button>
+              <button class="btn btn-accent" id="btnTestInRecognition" title="Switch to Live Sentence Recognition tab to test trained model">
+                🧪 Test in Sentence Recognition
+              </button>
+              <button class="btn btn-secondary btn-danger-subtle" id="btnResetSamples">
+                🗑️ Clear Samples
+              </button>
+              <button class="btn btn-secondary" id="btnResetModel" title="Reset model back to default baseline">
+                🔄 Reset Model
+              </button>
+            </div>
+
+            <!-- Training Progress Bar -->
+            <div class="training-progress-container" id="trainProgressContainer" style="display:none;">
+              <div class="train-status-text" id="trainStatusText">Training model weights on keypoint geometry...</div>
+              <div class="train-progress-bar">
+                <div class="train-progress-fill" id="trainProgressFill" style="width: 0%;"></div>
+              </div>
+              <div class="train-result-callout" id="trainResultCallout"></div>
+            </div>
+          </div>
+
+        </section>
+
+        <!-- Full-Width Bottom Section: Trained Sentences & Given Samples Explorer -->
+        <section class="glass-card trainer-samples-studio-card" id="trainerSamplesStudioCard">
+          <div class="card-header">
+            <div class="header-left">
+              <div class="card-icon emerald-glow">📜</div>
+              <div>
+                <h2 class="card-title">Trained Sentences & Given Samples Explorer</h2>
+                <p class="card-caption">Browse all recorded training samples and see the complete continuous ISL sentences unlocked by your training</p>
+              </div>
+            </div>
+
+            <!-- Tab Switcher: Trained Sentences vs Given Samples -->
+            <div class="studio-subtabs" id="trainerStudioSubtabs">
+              <button class="subtab-btn active" id="btnSubtabTrainedSentences" data-subtab="viewTrainedSentences">
+                💬 Trained Sentences (<span id="countTrainedSentences">0</span>)
+              </button>
+              <button class="subtab-btn" id="btnSubtabGivenSamples" data-subtab="viewGivenSamples">
+                📸 Given Samples (<span id="countGivenSamples">0</span>)
+              </button>
+            </div>
+          </div>
+
+          <!-- SUBVIEW 1: TRAINED ISL SENTENCES EXPLORER -->
+          <div class="trainer-subview active" id="viewTrainedSentences">
+            <div class="subview-toolbar">
+              <div class="search-input-wrap">
+                <span class="search-icon">🔍</span>
+                <input type="text" class="search-input" id="searchTrainedSentences" placeholder="Filter sentences or gestures (e.g. MORNING, THANK_YOU, INDIAN)...">
+              </div>
+              <div class="subview-filter-pills" id="sentenceFilterPills">
+                <button class="filter-pill active" data-filter="ALL">All Sentences</button>
+                <button class="filter-pill" data-filter="FULLY_TRAINED">🟢 Fully Trained</button>
+                <button class="filter-pill" data-filter="PARTIALLY_TRAINED">🟡 Partially Trained</button>
+              </div>
+            </div>
+
+            <!-- Sentence Cards Grid -->
+            <div class="trained-sentences-grid" id="trainedSentencesGrid">
+              <!-- Dynamically populated sentence cards -->
+            </div>
+          </div>
+
+          <!-- SUBVIEW 2: GIVEN SAMPLES GALLERY -->
+          <div class="trainer-subview" id="viewGivenSamples" style="display:none;">
+            <div class="subview-toolbar">
+              <div class="filter-pills-row" id="sampleClassFilterRow">
+                <!-- Dynamically populated: All, THANK_YOU, INDIAN, etc. -->
+              </div>
+            </div>
+
+            <!-- Samples Gallery Cards Grid -->
+            <div class="given-samples-grid" id="givenSamplesGrid">
+              <!-- Dynamically populated sample cards -->
+            </div>
+          </div>
+        </section>
+
+      </main>
+    </div>
+
+    <!-- ====================================================================
+         TAB 4: DEDICATED SIGN LANGUAGE SAMPLE MANAGEMENT STUDIO
+         ==================================================================== -->
+    <div class="tab-content-view" id="sampleManagerTab" style="display:none;">
+      <main class="sample-manager-container">
+        
+        <!-- Header & Quick Actions -->
+        <section class="glass-card sample-manager-header-card">
+          <div class="sm-header-row">
+            <div class="header-left">
+              <div class="card-icon cyan-glow">🗂️</div>
+              <div>
+                <h2 class="card-title">Sign Language Sample Management Studio</h2>
+                <p class="card-caption">Inspect, view, edit labels, delete, and organize all captured sign samples with 21-landmark hand representations</p>
+              </div>
+            </div>
+            <div class="sm-actions-row">
+              <button class="btn btn-primary" id="btnSMGotoTrainer" title="Record new sign samples using your webcam">
+                📸 Record More Signs
+              </button>
+              <button class="btn btn-accent" id="btnSMTrainModel" title="Train custom classification model on your saved samples">
+                ⚡ Train Model Now
+              </button>
+              <button class="btn btn-secondary btn-danger-subtle" id="btnSMClearAll" title="Clear all stored training samples">
+                🗑️ Clear All Samples
+              </button>
+            </div>
+          </div>
+
+          <!-- Statistics Counters Banner -->
+          <div class="sm-stats-strip">
+            <div class="sm-stat-box">
+              <span class="sm-stat-num mono-val" id="smTotalSamples">0</span>
+              <span class="sm-stat-label">Total Samples Overall</span>
+            </div>
+            <div class="sm-stat-box">
+              <span class="sm-stat-num mono-val" id="smTotalSigns">0</span>
+              <span class="sm-stat-label">Distinct Signs Saved</span>
+            </div>
+            <div class="sm-stat-box">
+              <span class="sm-stat-num mono-val" id="smModelStatus">Baseline Mode</span>
+              <span class="sm-stat-label">Active Model Status</span>
+            </div>
+            <div class="sm-stat-box">
+              <span class="sm-stat-num mono-val" id="smValidationAcc">--</span>
+              <span class="sm-stat-label">Validation Accuracy</span>
+            </div>
+          </div>
+
+          <!-- Stored Signs Summary Pills -->
+          <div class="sm-signs-summary">
+            <span class="sm-summary-title">SAVED SIGNS & SAMPLE COUNTS:</span>
+            <div class="sm-signs-chips-wrap" id="smSignsSummaryChips">
+              <!-- Dynamically populated: e.g. [🙏 THANK_YOU: 12] [☝️ I: 8] -->
+            </div>
+          </div>
+        </section>
+
+        <!-- Search, Filter & View Controls -->
+        <section class="glass-card sm-controls-card">
+          <div class="sm-toolbar">
+            <div class="search-input-wrap">
+              <span class="search-icon">🔍</span>
+              <input type="text" class="search-input" id="searchSamplesInput" placeholder="Search samples by word/sign label, mode, or ID (e.g. THANK_YOU, INDIAN, #smp)...">
+            </div>
+
+            <!-- View Mode Switcher -->
+            <div class="sm-view-toggle">
+              <button class="view-toggle-btn active" id="btnViewGrouped" data-view="grouped" title="Group samples by sign label">
+                📂 Group by Sign
+              </button>
+              <button class="view-toggle-btn" id="btnViewGrid" data-view="grid" title="Display all samples in continuous grid">
+                🔲 All Cards Grid
+              </button>
+            </div>
+          </div>
+
+          <!-- Sign Filter Pills -->
+          <div class="sm-filter-pills-row" id="smFilterPillsRow">
+            <!-- Dynamically populated -->
+          </div>
+        </section>
+
+        <!-- Main Samples Container (Supports Grouped & Grid Modes) -->
+        <section class="sm-samples-content-area" id="smSamplesContentArea">
+          <!-- Dynamically populated sample groups or grid -->
+        </section>
+
+      </main>
+    </div>
+
+    <!-- Edit Sign Language Entry Modal (Sign Library) -->
+    <div class="kinex-modal-backdrop" id="editSignModal" style="display:none;">
+      <div class="kinex-modal-box">
+        <div class="modal-header">
+          <h3 class="modal-title">✏️ Edit Sign Language Entry</h3>
+          <button class="modal-close-btn" id="btnCancelEditSignModal" onclick="closeEditSignModal()">&times;</button>
+        </div>
+        <div class="modal-body">
+          <input type="hidden" id="editSignId" value="">
+          <div class="modal-input-group">
+            <label for="editSignLabel" class="modal-label">SIGN LABEL / KEYWORD:</label>
+            <input type="text" class="modal-input" id="editSignLabel" placeholder="e.g. NAMASTE, WATER, HELP" required>
+          </div>
+          <div class="modal-input-group">
+            <label for="editSignMeaning" class="modal-label">MEANING / TRANSLATION PHRASE:</label>
+            <input type="text" class="modal-input" id="editSignMeaning" placeholder="e.g. Traditional Indian Greeting, Water drink" required>
+          </div>
+          <div class="modal-input-group">
+            <label for="editSignCategory" class="modal-label">CATEGORY:</label>
+            <select class="custom-select modal-input" id="editSignCategory">
+              <option value="common">Common / Everyday</option>
+              <option value="greeting">Greetings & Salutations</option>
+              <option value="identity">Identity & Pronouns</option>
+              <option value="action">Actions & Verbs</option>
+              <option value="alphabet">Alphabet (A-Z)</option>
+              <option value="number">Numbers (0-9)</option>
+            </select>
+          </div>
+          <div class="modal-input-group">
+            <label for="editSignDescription" class="modal-label">DESCRIPTION & EXECUTION INSTRUCTIONS:</label>
+            <textarea class="modal-input" id="editSignDescription" rows="3" placeholder="Provide instructions for performing this gesture..."></textarea>
+          </div>
+          <div class="modal-input-group">
+            <label class="modal-label">UPDATE MEDIA REFERENCE (OPTIONAL IMAGE/VIDEO):</label>
+            <input type="file" id="editSignMediaInput" accept="image/*,video/*" class="modal-input" style="padding:0.4rem;">
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-secondary" onclick="closeEditSignModal()">Cancel</button>
+          <button class="btn btn-primary" id="btnSaveSignEdit" onclick="saveEditedSign()">Save Sign Changes</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Video Playback Modal -->
+    <div class="kinex-modal-backdrop" id="videoPlaybackModal" style="display:none;">
+      <div class="kinex-modal-box" style="max-width:640px;">
+        <div class="modal-header">
+          <h3 class="modal-title" id="videoPlaybackModalTitle">🎬 Video Playback</h3>
+          <button class="modal-close-btn" onclick="closeVideoPlaybackModal()">&times;</button>
+        </div>
+        <div class="modal-body" style="text-align:center;">
+          <video id="modalVideoPlayer" controls playsinline style="width:100%; max-height:420px; border-radius:var(--radius-md); background:#000;"></video>
+          <p id="modalVideoCaption" style="margin-top:0.75rem; font-size:0.85rem; color:var(--text-muted);"></p>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-secondary" onclick="closeVideoPlaybackModal()">Close</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Edit Sample Label Modal -->
+    <div class="kinex-modal-backdrop" id="editSampleModal" style="display:none;">
+      <div class="kinex-modal-box">
+        <div class="modal-header">
+          <h3 class="modal-title">✏️ Edit Sign Sample Label</h3>
+          <button class="modal-close-btn" id="btnCancelEditModal">&times;</button>
+        </div>
+        <div class="modal-body">
+          <p class="modal-desc">
+            Change the sign or word label for sample <strong id="editModalSampleId">#smp-000000</strong> without having to record it again.
+          </p>
+          <div class="modal-input-group">
+            <label for="editModalInput" class="modal-label">NEW SIGN / WORD LABEL:</label>
+            <input type="text" class="modal-input" id="editModalInput" placeholder="Enter new sign label (e.g. THANK_YOU, HELLO, NAMASTE)...">
+          </div>
+          <div class="modal-quick-chips" id="editModalQuickChips">
+            <!-- Common sign chips for 1-click select -->
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-secondary" id="btnCancelEditModal2">Cancel</button>
+          <button class="btn btn-primary" id="btnSaveSampleLabel">Save Changes</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Clear All Samples Confirmation Modal -->
+    <div class="kinex-modal-backdrop" id="clearAllModal" style="display:none;">
+      <div class="kinex-modal-box modal-danger">
+        <div class="modal-header">
+          <h3 class="modal-title">⚠️ Clear All Sign Samples</h3>
+          <button class="modal-close-btn" id="btnCancelClearModal">&times;</button>
+        </div>
+        <div class="modal-body">
+          <p class="modal-desc">
+            Are you sure you want to <strong>permanently delete all stored sign language samples</strong> and reset the classifier model to baseline?
+          </p>
+          <div class="modal-warning-callout">
+            <span class="callout-icon">🚨</span>
+            <div>
+              <strong>This action cannot be undone.</strong> All recorded landmark poses, image representations, and trained custom weights will be removed so you can start fresh.
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-secondary" id="btnCancelClearModal2">Keep My Samples</button>
+          <button class="btn btn-danger" id="btnConfirmClearAll">Yes, Clear All Samples</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Toast Notification Overlay -->
+    <div class="kinex-toast" id="kinexToast" style="display:none;">
+      <span class="toast-icon" id="toastIcon">ℹ️</span>
+      <span class="toast-message" id="toastMessage">Sentence action stored!</span>
+    </div>
+
+    <!-- Footer -->
+    <footer class="kinex-footer">
+      <p>KINEX Adv 2.0 — Continuous Indian Sign Language (ISL) Sentence Recognition, Action Tracking & Multimodal Glove Fusion • SRMIST</p>
+    </footer>
+  </div>
+
+  <script src="js/app.js?v=bento_v4"></script>
+</body>
+</html>

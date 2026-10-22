@@ -1,0 +1,18 @@
+{
+  "dataset_name": "KINEX Hand Pose Dataset",
+  "version": "v1.0-annotation",
+  "created_at": "2026-09-24T11:23:00.606486",
+  "total_images": 0,
+  "total_labels": 0,
+  "keypoint_count": 21,
+  "keypoint_dimensions": 3,
+  "classes": {
+    "0": "hand"
+  },
+  "splits": {
+    "train": 0,
+    "val": 0,
+    "test": 0
+  },
+  "quality_status": "BLOCKED \u2014 NO REAL PRODUCTION IMAGES AVAILABLE"
+}

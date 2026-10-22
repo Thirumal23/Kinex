@@ -1,0 +1,13 @@
+Metric,Value
+Status,PHASE 4 BLOCKED
+Note,Testing test suite execution
+Python,3.14.3
+PyTorch,
+Ultralytics,
+CUDA Available,False
+GPU,NVIDIA GeForce RTX 3050 6GB Laptop GPU
+Train Images,0
+Val Images,0
+Test Images,0
+Pretrained,False
+Random Init,True

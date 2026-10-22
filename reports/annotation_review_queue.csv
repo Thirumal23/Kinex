@@ -1,0 +1,4 @@
+error_code,file,reason
+E009,C:\Users\thiru\AppData\Local\Temp\kinex_test_p3_td52syjq\images\S01_SESSION_01_I_RIGHT_000004.jpg,Missing label file for image
+E011,C:\Users\thiru\AppData\Local\Temp\kinex_test_p3_td52syjq\labels\S01_SESSION_01_BYE_RIGHT_000005.txt,Orphan label file without corresponding image
+E010,S01_SESSION_01_BYE_RIGHT_000005.txt:1,"Expected 68 tokens, got 5"

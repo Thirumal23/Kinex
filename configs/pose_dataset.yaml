@@ -1,0 +1,27 @@
+# KINEX YOLO26 Hand Pose Dataset Configuration
+# Standard Ultralytics YOLO Pose YAML format
+
+# Dataset root directory (relative to project root or absolute)
+path: datasets/hand_pose
+
+# Sub-paths for train, validation, and test splits
+train: images/train
+val: images/val
+test: images/test
+
+# Keypoint specifications
+# 21 hand keypoints, each having 3 values: [x_norm, y_norm, visibility]
+# visibility: 0 = unannotated/absent, 1 = occluded, 2 = visible
+kpt_shape: [21, 3]
+
+# Flip index mapping for horizontal data augmentation
+# Maps landmarks under horizontal mirror:
+# 0: wrist -> 0
+# Thumb (1-4) <-> Pinky (17-20)
+# Index (5-8) <-> Ring (13-16)
+# Middle (9-12) <-> Middle (9-12)
+flip_idx: [0, 17, 18, 19, 20, 13, 14, 15, 16, 9, 10, 11, 12, 5, 6, 7, 8, 1, 2, 3, 4]
+
+# Single target object class: hand
+names:
+  0: hand

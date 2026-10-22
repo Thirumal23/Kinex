@@ -1,0 +1,32 @@
+# KINEX Zero-Leakage Dataset Partition Configuration
+# Subjects are strictly segregated across Train, Validation, and Test splits.
+# No subject may ever appear across more than one split partition.
+
+split_version: "v1.0"
+partition_strategy: "SUBJECT_AND_SESSION_BASED"
+
+# Target Subject Allocations for KINEX Production Data:
+# - Train: 70% of subjects (Core representation learning)
+# - Validation: 15% of subjects (Hyperparameter tuning / validation)
+# - Test: 15% of subjects (Unseen human evaluation)
+
+train_subjects:
+  - "S01"
+  - "S02"
+  - "S03"
+  - "S04"
+  - "S05"
+  - "S06"
+
+val_subjects:
+  - "S07"
+
+test_subjects:
+  - "S08"
+  - "S09"
+  - "S10"
+
+rules:
+  allow_random_frame_split: false # STRICTLY PROHIBITED
+  allow_subject_overlap: false # STRICTLY PROHIBITED
+  allow_session_overlap: false # STRICTLY PROHIBITED

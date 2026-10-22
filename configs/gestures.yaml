@@ -1,0 +1,17 @@
+# KINEX ISL Gesture Classes Configuration
+# Dynamic configuration: modify or extend gestures here without modifying core vision code.
+
+gesture_classes:
+  0: HEARING
+  1: THANK_YOU
+  2: MORNING
+  3: "I"
+  4: BYE
+  5: NAME
+  6: INDIAN
+
+metadata:
+  total_classes: 7
+  domain: "Indian Sign Language (ISL)"
+  type: "Prototype Isolated Gesture Set"
+  version: "1.0.0"

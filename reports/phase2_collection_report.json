@@ -1,0 +1,30 @@
+{
+  "timestamp": "2026-09-24T11:13:20.697226",
+  "summary": {
+    "total_subjects": 0,
+    "total_sessions": 0,
+    "total_gestures": 0,
+    "total_captured": 2,
+    "total_accepted": 0,
+    "total_rejected": 2,
+    "rejections": {
+      "duplicates": 0,
+      "blur": 2,
+      "exposure": 0,
+      "other": 0
+    }
+  },
+  "gesture_distribution": {},
+  "subject_distribution": {},
+  "hand_distribution": {},
+  "lighting_distribution": {},
+  "distance_distribution": {},
+  "resolution_distribution": {},
+  "subject_gesture_matrix": {},
+  "validation_status": "NO_DATA",
+  "known_limitations": [
+    "Dataset represents raw webcam captures prior to 21-keypoint annotation.",
+    "Hand presence in raw images is operator-guided and unverified by AI model (Phase 4).",
+    "Initial sample size serves as engineering validation baseline for annotation pipeline bring-up."
+  ]
+}

@@ -1,0 +1,35 @@
+{
+  "timestamp": "2026-09-24T11:23:00.603238",
+  "phase3_status": "BLOCKED \u2014 NO REAL PRODUCTION IMAGES AVAILABLE",
+  "data_availability": {
+    "raw_production_images": 0,
+    "images_in_splits": 0,
+    "labels_in_splits": 0
+  },
+  "quality_gates": {
+    "IMAGE_INTEGRITY": "PASS",
+    "ANNOTATION_FORMAT": "PASS",
+    "KEYPOINT_COUNT": "PASS",
+    "COORDINATE_RANGE": "PASS",
+    "VISIBILITY_VALUES": "PASS",
+    "IMAGE_LABEL_MATCH": "PASS",
+    "SUBJECT_LEAKAGE": "PASS",
+    "SESSION_LEAKAGE": "PASS",
+    "MANUAL_QA_QUEUE": "0 flagged instances"
+  },
+  "split_counts": {
+    "train": {
+      "images": 0,
+      "labels": 0
+    },
+    "val": {
+      "images": 0,
+      "labels": 0
+    },
+    "test": {
+      "images": 0,
+      "labels": 0
+    }
+  },
+  "review_queue_count": 0
+}

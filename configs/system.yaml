@@ -1,0 +1,73 @@
+# KINEX System Configuration
+# Comprehensive configuration for vision, feature extraction, classification, temporal smoothing, and hardware.
+
+system:
+  project_name: "KINEX — Hand Sign Processing and Recognition"
+  version: "2.0.0"
+  log_level: "INFO"
+  seed: 42
+
+vision:
+  # Pipeline selection: "yolo26_pose", "mediapipe", or "fusion"
+  pipeline: "yolo26_pose"
+  model: "configs/yolo26n-pose.yaml"
+  pretrained: false # STRICT REQUIREMENT: Random initialization only. NEVER use external pretrained weights.
+  image_size: 640
+  confidence_threshold: 0.50
+  iou_threshold: 0.45
+  max_detections: 1 # Target single primary hand (or 2 for bilateral signs)
+  device: "cpu" # "cuda" if GPU is available, else "cpu"
+  kpt_shape: [21, 3]
+
+classifier:
+  type: "mlp" # Options: "mlp", "rf", "svm", "xgboost"
+  classes_config: "configs/gestures.yaml"
+  num_classes: 7
+  feature_version: "v4_combined" # Options: "v1_coords", "v2_bones", "v3_angles", "v4_combined"
+  confidence_threshold: 0.70
+  dwell_frames: 5
+  smoothing_window: 7
+  unknown_class_label: "UNKNOWN"
+
+temporal:
+  enabled: false # Phase 1 is static; Phase 2 enables GRU sequence recognition
+  model_type: "gru"
+  sequence_length: 16
+  input_dim: 126 # Determined by feature extraction version (e.g. combined features)
+  hidden_dim: 64
+  num_layers: 2
+  dropout: 0.2
+
+hardware:
+  enabled: false # Phase 1 standalone vision; set true during Phase 12-15 integration
+  connection_type: "serial" # "serial" or "websocket"
+  serial_port: "COM3"
+  baud_rate: 115200
+  timeout_s: 1.0
+  flex_resistor_ohms: 68000
+  adc_resolution_bits: 12
+  adc_vref: 3.3
+
+  flex_pins:
+    thumb: 33
+    index: 32
+    middle: 34
+    ring: 35
+    little: 36 # GPIO 36 / VP
+
+  mpu6050:
+    sda: 21
+    scl: 22
+    sample_rate_hz: 50
+    filter_alpha: 0.98 # Complementary filter coefficient
+
+  tft:
+    driver: "ST7735"
+    cs: 5
+    dc: 2
+    rst: 4
+    sck: 18
+    mosi: 23
+    led_bl: 3.3
+    width: 128
+    height: 160

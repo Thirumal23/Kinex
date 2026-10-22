@@ -1,0 +1,66 @@
+{
+  "sessions": [
+    {
+      "subject_id": "S00_TEST",
+      "session_id": "TEST_SESSION",
+      "gesture": "THANK_YOU",
+      "hand": "RIGHT",
+      "lighting": "INDOOR_NORMAL",
+      "camera_distance": "MEDIUM",
+      "background": "PLAIN_WALL",
+      "total_captured": 2,
+      "total_accepted": 0,
+      "total_rejected": 2,
+      "rejections": {
+        "duplicates": 0,
+        "blur": 2,
+        "exposure": 0
+      },
+      "validation": {
+        "passed": true,
+        "errors": [],
+        "files_checked": 0
+      },
+      "session_directory": "datasets\\hand_pose\\raw\\S00_TEST\\TEST_SESSION\\THANK_YOU",
+      "completed_at": "2026-09-24T11:10:31.964870"
+    },
+    {
+      "subject_id": "S01_SYNTH",
+      "session_id": "TEST_01",
+      "gesture": "THANK_YOU",
+      "hand": "RIGHT",
+      "lighting": "INDOOR_NORMAL",
+      "camera_distance": "MEDIUM",
+      "background": "PLAIN_WALL",
+      "total_captured": 2,
+      "total_accepted": 1,
+      "total_rejected": 1,
+      "rejections": {
+        "duplicates": 1,
+        "blur": 0,
+        "exposure": 0
+      },
+      "validation": {
+        "passed": true,
+        "errors": [],
+        "files_checked": 1
+      },
+      "session_directory": "datasets\\hand_pose\\raw\\S01_SYNTH\\TEST_01\\THANK_YOU",
+      "completed_at": "2026-09-24T11:13:36.061396"
+    }
+  ],
+  "stats": {
+    "total_sessions": 2,
+    "total_captured": 4,
+    "total_accepted": 1,
+    "total_rejected": 3,
+    "unique_subjects": [
+      "S00_TEST",
+      "S01_SYNTH"
+    ],
+    "unique_gestures": [
+      "THANK_YOU"
+    ],
+    "last_updated": "2026-09-24T11:13:36.063125"
+  }
+}
